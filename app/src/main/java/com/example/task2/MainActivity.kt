@@ -1,5 +1,7 @@
 package com.example.task2
 
+import android.content.Context
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -18,21 +20,40 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.example.task2.model.PhotoResult
+import com.example.task2.model.StorageImageModel
 import com.example.task2.tabs.APIScreen
 import com.example.task2.tabs.CameraScreen
 import com.example.task2.tabs.SavedScreen
 import com.example.task2.tabs.StorageScreen
+import com.example.task2.ui.ImageViewerScreen
 import com.example.task2.ui.theme.Task2Theme
+import com.example.task2.utils.UriTypeAdapter
+import com.example.task2.viewmodel.GalleryViewModelFactory
+import com.example.task2.viewmodel.StorageViewModel
+import com.example.task2.viewmodel.StorageViewModelFactory
+import com.example.task2.viewmodel.UnSplashViewModel
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.PagerState
 import com.google.accompanist.pager.pagerTabIndicatorOffset
 import com.google.accompanist.pager.rememberPagerState
+import com.google.gson.GsonBuilder
 import kotlinx.coroutines.launch
+import java.net.URLDecoder
 
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -48,11 +69,68 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalPagerApi::class)
 @Composable
 fun MainScreen() {
+
+    val context = LocalContext.current
+
+    val navController = rememberNavController()
+
+    val storageViewModel: StorageViewModel = viewModel(
+        factory = StorageViewModelFactory(context)
+    )
+
+    val apiViewModel: UnSplashViewModel = viewModel(factory = GalleryViewModelFactory())
+
     val tabData = getTabList()
     val pagerState = rememberPagerState(pageCount = tabData.size)
     Column(modifier = Modifier.fillMaxSize()) {
         TabLayout(tabData, pagerState)
-        TabContent(tabData, pagerState)
+        NavHost(navController = navController, startDestination = "tabs") {
+            composable("tabs") {
+                TabContent(
+                    context,
+                    tabData,
+                    pagerState,
+                    storageViewModel,
+                    apiViewModel,
+                    navController
+                )
+            }
+            composable(
+                route = "image_detail_screen/{imagesJson}/{apiImagesJson}/{selectedIndex}",
+                arguments = listOf(
+                    navArgument("imagesJson") { type = NavType.StringType },
+                    navArgument("apiImagesJson") { type = NavType.StringType },
+                    navArgument("selectedIndex") { type = NavType.IntType }
+                )
+            ) { backStackEntry ->
+                val imagesJson = backStackEntry.arguments?.getString("imagesJson")
+                val apiImagesJson = backStackEntry.arguments?.getString("apiImagesJson")
+                val selectedIndex = backStackEntry.arguments?.getInt("selectedIndex") ?: 0
+
+                val srcJson = URLDecoder.decode(imagesJson, "UTF-8")
+                val apiSrcJson = URLDecoder.decode(apiImagesJson, "UTF-8")
+
+                val gson = GsonBuilder()
+                    .registerTypeAdapter(Uri::class.java, UriTypeAdapter())
+                    .create()
+
+                val savedPhotosEntity =
+                    gson.fromJson(srcJson, Array<StorageImageModel>::class.java).toList()
+
+
+
+                val gson2 = GsonBuilder()
+                    .registerTypeAdapter(Uri::class.java, UriTypeAdapter())
+                    .create()
+
+                val apiPhotosEntity =
+                    gson2.fromJson(apiSrcJson, Array<PhotoResult>::class.java).toList()
+
+//                if (imagesJson != null) {
+                    ImageViewerScreen(savedPhotosEntity, apiPhotosEntity, selectedIndex)
+//                }
+            }
+        }
     }
 }
 
@@ -99,15 +177,22 @@ fun TabLayout(tabData: List<String>, pagerState: PagerState) {
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
-fun TabContent(tabData: List<String>, pagerState: PagerState) {
+fun TabContent(
+    context: Context,
+    tabData: List<String>,
+    pagerState: PagerState,
+    storageViewModel: StorageViewModel,
+    apiViewModel: UnSplashViewModel,
+    navController: NavHostController
+) {
     HorizontalPager(state = pagerState) { index ->
         when (index) {
             0 -> {
-                APIScreen()
+                APIScreen(apiViewModel, navController)
             }
 
             1 -> {
-                StorageScreen()
+                StorageScreen(storageViewModel, navController)
             }
 
             2 -> {
@@ -115,10 +200,9 @@ fun TabContent(tabData: List<String>, pagerState: PagerState) {
             }
 
             3 -> {
-                SavedScreen()
+                SavedScreen(storageViewModel, navController)
             }
         }
-
     }
 }
 

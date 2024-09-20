@@ -9,7 +9,7 @@ import com.example.task2.model.PhotoResult
 import com.example.task2.repo.UnsplashRepository
 import kotlinx.coroutines.launch
 
-class UnSplashViewModel(private val repository: UnsplashRepository) : ViewModel() {
+class UnSplashViewModel(private val repository: UnsplashRepository?) : ViewModel() {
 
     private val _photos = mutableStateOf<List<PhotoResult>>(emptyList())
     val photos: State<List<PhotoResult>> = _photos
@@ -21,8 +21,10 @@ class UnSplashViewModel(private val repository: UnsplashRepository) : ViewModel(
         viewModelScope.launch {
             _loading.value = true
             try {
-                val response = repository.searchPhotos(query, page, perPage)
-                _photos.value = response.results
+                val response = repository?.searchPhotos(query, page, perPage)
+                response?.let {
+                    _photos.value = it.results
+                }
             } catch (e: Exception) {
                 _loading.value = false
             } finally {
