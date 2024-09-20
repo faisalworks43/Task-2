@@ -48,6 +48,7 @@ import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.PagerState
 import com.google.accompanist.pager.pagerTabIndicatorOffset
 import com.google.accompanist.pager.rememberPagerState
+import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import kotlinx.coroutines.launch
 import java.net.URLDecoder
@@ -106,6 +107,10 @@ fun MainScreen() {
                 val imagesJson = backStackEntry.arguments?.getString("imagesJson")
                 val apiImagesJson = backStackEntry.arguments?.getString("apiImagesJson")
                 val selectedIndex = backStackEntry.arguments?.getInt("selectedIndex") ?: 0
+
+                /*val srcJson = URLDecoder.decode(imagesJson, "UTF-8")
+                val gson = Gson()
+                val savedPhotosEntity = gson.fromJson(srcJson, Array<StorageImageModel>::class.java).toList()*/
 
                 val gson = GsonBuilder()
                     .registerTypeAdapter(Uri::class.java, UriTypeAdapter())
