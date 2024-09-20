@@ -107,17 +107,15 @@ fun MainScreen() {
                 val apiImagesJson = backStackEntry.arguments?.getString("apiImagesJson")
                 val selectedIndex = backStackEntry.arguments?.getInt("selectedIndex") ?: 0
 
-                val srcJson = URLDecoder.decode(imagesJson, "UTF-8")
-                val apiSrcJson = URLDecoder.decode(apiImagesJson, "UTF-8")
-
                 val gson = GsonBuilder()
                     .registerTypeAdapter(Uri::class.java, UriTypeAdapter())
                     .create()
 
+                val srcJson = URLDecoder.decode(imagesJson, "UTF-8")
                 val savedPhotosEntity =
                     gson.fromJson(srcJson, Array<StorageImageModel>::class.java).toList()
 
-
+                val apiSrcJson = URLDecoder.decode(apiImagesJson, "UTF-8")
 
                 val gson2 = GsonBuilder()
                     .registerTypeAdapter(Uri::class.java, UriTypeAdapter())
@@ -126,9 +124,7 @@ fun MainScreen() {
                 val apiPhotosEntity =
                     gson2.fromJson(apiSrcJson, Array<PhotoResult>::class.java).toList()
 
-//                if (imagesJson != null) {
-                    ImageViewerScreen(savedPhotosEntity, apiPhotosEntity, selectedIndex)
-//                }
+                ImageViewerScreen(savedPhotosEntity, apiPhotosEntity, selectedIndex)
             }
         }
     }
