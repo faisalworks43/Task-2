@@ -1,7 +1,6 @@
 package com.example.task2
 
 import android.content.Context
-import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -30,15 +29,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.task2.model.PhotoResult
-import com.example.task2.model.StorageImageModel
 import com.example.task2.tabs.APIScreen
 import com.example.task2.tabs.CameraScreen
 import com.example.task2.tabs.SavedScreen
 import com.example.task2.tabs.StorageScreen
 import com.example.task2.ui.ImageViewerScreen
 import com.example.task2.ui.theme.Task2Theme
-import com.example.task2.utils.UriTypeAdapter
 import com.example.task2.viewmodel.GalleryViewModelFactory
 import com.example.task2.viewmodel.StorageViewModel
 import com.example.task2.viewmodel.StorageViewModelFactory
@@ -48,10 +44,7 @@ import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.PagerState
 import com.google.accompanist.pager.pagerTabIndicatorOffset
 import com.google.accompanist.pager.rememberPagerState
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
 import kotlinx.coroutines.launch
-import java.net.URLDecoder
 
 class MainActivity : ComponentActivity() {
 
@@ -97,39 +90,19 @@ fun MainScreen() {
                 )
             }
             composable(
-                route = "image_detail_screen/{imagesJson}/{apiImagesJson}/{selectedIndex}",
+                route = "image_detail_screen/{imagesJson}/{selectedIndex}?isFromGallery={isFromGallery}",
                 arguments = listOf(
                     navArgument("imagesJson") { type = NavType.StringType },
-                    navArgument("apiImagesJson") { type = NavType.StringType },
-                    navArgument("selectedIndex") { type = NavType.IntType }
+                    navArgument("selectedIndex") { type = NavType.IntType },
+                    navArgument("isFromGallery") { type = NavType.BoolType }
                 )
             ) { backStackEntry ->
                 val imagesJson = backStackEntry.arguments?.getString("imagesJson")
-                val apiImagesJson = backStackEntry.arguments?.getString("apiImagesJson")
                 val selectedIndex = backStackEntry.arguments?.getInt("selectedIndex") ?: 0
+                val isFromGallery = backStackEntry.arguments?.getBoolean("isFromGallery")
 
-                /*val srcJson = URLDecoder.decode(imagesJson, "UTF-8")
-                val gson = Gson()
-                val savedPhotosEntity = gson.fromJson(srcJson, Array<StorageImageModel>::class.java).toList()*/
 
-                val gson = GsonBuilder()
-                    .registerTypeAdapter(Uri::class.java, UriTypeAdapter())
-                    .create()
-
-                val srcJson = URLDecoder.decode(imagesJson, "UTF-8")
-                val savedPhotosEntity =
-                    gson.fromJson(srcJson, Array<StorageImageModel>::class.java).toList()
-
-                val apiSrcJson = URLDecoder.decode(apiImagesJson, "UTF-8")
-
-                val gson2 = GsonBuilder()
-                    .registerTypeAdapter(Uri::class.java, UriTypeAdapter())
-                    .create()
-
-                val apiPhotosEntity =
-                    gson2.fromJson(apiSrcJson, Array<PhotoResult>::class.java).toList()
-
-                ImageViewerScreen(savedPhotosEntity, apiPhotosEntity, selectedIndex)
+                ImageViewerScreen(imagesJson, selectedIndex, isFromGallery)
             }
         }
     }

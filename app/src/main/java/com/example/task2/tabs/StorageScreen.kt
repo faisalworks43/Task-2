@@ -103,7 +103,7 @@ fun StorageScreen(storageViewModel: StorageViewModel, navController: NavControll
 
 
     SetImagesList(ArrayList(images)) { selectedIndex ->
-        navController.navigate("image_detail_screen/$imagesJson/${""}/$selectedIndex")
+        navController.navigate("image_detail_screen/${imagesJson}/$selectedIndex?isFromGallery=true")
     }
 
 }

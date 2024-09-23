@@ -1,5 +1,6 @@
 package com.example.task2.ui
 
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,31 +19,42 @@ import androidx.compose.ui.unit.sp
 import coil.compose.rememberImagePainter
 import com.example.task2.model.PhotoResult
 import com.example.task2.model.StorageImageModel
+import com.example.task2.utils.UriTypeAdapter
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.PagerState
 import com.google.accompanist.pager.rememberPagerState
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
+import com.google.gson.reflect.TypeToken
+import java.net.URLDecoder
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
-fun ImageViewerScreen(images: List<StorageImageModel>?, apiImages: List<PhotoResult>?, selectedIndex: Int) {
+fun ImageViewerScreen(srcJson: String?, selectedIndex: Int, isFromGallery: Boolean?) {
 
-    if (!images.isNullOrEmpty()) {
+    val jsonApi = URLDecoder.decode(srcJson, "UTF-8")
+    val srcListType = object : TypeToken<List<PhotoResult>>() {}.type
+    val apiList: List<PhotoResult> = Gson().fromJson(jsonApi, srcListType)
 
+    val gallerySrcList = GsonBuilder()
+            .registerTypeAdapter(Uri::class.java, UriTypeAdapter())
+            .create().fromJson(jsonApi, Array<StorageImageModel>::class.java).toList()
+
+    if (isFromGallery == true) {
         val pagerState = rememberPagerState(
-            pageCount = images?.size ?: 0,
+            pageCount = gallerySrcList?.size ?: 0,
             initialPage = selectedIndex
         )
 
-        SetImagesPager(images, pagerState)
-    } else if (!apiImages.isNullOrEmpty()) {
-
+        SetImagesPager(gallerySrcList, pagerState)
+    } else {
         val pagerState = rememberPagerState(
-            pageCount = apiImages?.size ?: 0,
+            pageCount = apiList?.size ?: 0,
             initialPage = selectedIndex
         )
 
-        SetImagesPagerX(apiImages, pagerState)
+        SetImagesPagerX(apiList, pagerState)
     }
 
 }
@@ -120,5 +132,5 @@ fun SetImagesPagerX(images: List<PhotoResult>, pagerState: PagerState) {
 @Preview(showSystemUi = true)
 @Composable
 fun ImageViewerScreenPreview() {
-    ImageViewerScreen(images = null, null, selectedIndex = 0)
+    ImageViewerScreen(null, selectedIndex = 0, false)
 }

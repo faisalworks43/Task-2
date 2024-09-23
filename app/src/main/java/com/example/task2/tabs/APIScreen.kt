@@ -46,7 +46,7 @@ fun APIScreen(apiViewModel: UnSplashViewModel, navController: NavHostController)
     }
 
     UnSplashGalleryList(apiViewModel) { selectedIndex ->
-        navController.navigate("image_detail_screen/${""}/$apiImagesJson/$selectedIndex")
+        navController.navigate("image_detail_screen/${apiImagesJson}/$selectedIndex?isFromGallery=false")
     }
 
 }
