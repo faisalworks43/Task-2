@@ -106,7 +106,7 @@ fun SavedScreen(storageViewModel: StorageViewModel, navController: NavHostContro
     }
 
     SetSavedImagesList(ArrayList(savedImages)) { selectedIndex ->
-        navController.navigate("image_detail_screen/${savedImagesJson}/$selectedIndex?isFromGallery=true")
+        navController.navigate("image_detail_screen/${savedImagesJson}/$selectedIndex")
     }
 
 }

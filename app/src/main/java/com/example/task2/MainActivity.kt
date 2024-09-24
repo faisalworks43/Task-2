@@ -90,19 +90,16 @@ fun MainScreen() {
                 )
             }
             composable(
-                route = "image_detail_screen/{imagesJson}/{selectedIndex}?isFromGallery={isFromGallery}",
+                route = "image_detail_screen/{imagesJson}/{selectedIndex}",
                 arguments = listOf(
                     navArgument("imagesJson") { type = NavType.StringType },
                     navArgument("selectedIndex") { type = NavType.IntType },
-                    navArgument("isFromGallery") { type = NavType.BoolType }
                 )
             ) { backStackEntry ->
                 val imagesJson = backStackEntry.arguments?.getString("imagesJson")
                 val selectedIndex = backStackEntry.arguments?.getInt("selectedIndex") ?: 0
-                val isFromGallery = backStackEntry.arguments?.getBoolean("isFromGallery")
 
-
-                ImageViewerScreen(imagesJson, selectedIndex, isFromGallery)
+                ImageViewerScreen(imagesJson, selectedIndex)
             }
         }
     }

@@ -31,37 +31,55 @@ import java.net.URLDecoder
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
-fun ImageViewerScreen(srcJson: String?, selectedIndex: Int, isFromGallery: Boolean?) {
+fun ImageViewerScreen(srcJson: String?, selectedIndex: Int) {
 
     val jsonApi = URLDecoder.decode(srcJson, "UTF-8")
     val srcListType = object : TypeToken<List<PhotoResult>>() {}.type
-    val apiList: List<PhotoResult> = Gson().fromJson(jsonApi, srcListType)
+    val apiImagesList: List<PhotoResult> = Gson().fromJson<List<PhotoResult>?>(jsonApi, srcListType)
+        .filter {
+            it.id != null && it.urls != null
+        }
 
-    val gallerySrcList = GsonBuilder()
-            .registerTypeAdapter(Uri::class.java, UriTypeAdapter())
-            .create().fromJson(jsonApi, Array<StorageImageModel>::class.java).toList()
+    val galleryImagesList = GsonBuilder()
+        .registerTypeAdapter(Uri::class.java, UriTypeAdapter())
+        .create().fromJson(jsonApi, Array<StorageImageModel>::class.java)
+        .toList()
+        .filter {
+            it.uri != null && it.uri.toString().isNotBlank() &&
+                    !it.path.isNullOrBlank()
+        }
 
-    if (isFromGallery == true) {
+    if (galleryImagesList.isNotEmpty()) {
         val pagerState = rememberPagerState(
-            pageCount = gallerySrcList?.size ?: 0,
+            pageCount = galleryImagesList.size,
             initialPage = selectedIndex
         )
 
-        SetImagesPager(gallerySrcList, pagerState)
-    } else {
-        val pagerState = rememberPagerState(
-            pageCount = apiList?.size ?: 0,
-            initialPage = selectedIndex
-        )
-
-        SetImagesPagerX(apiList, pagerState)
+        SetGalleryImagesPager(galleryImagesList, pagerState)
     }
 
+    if (apiImagesList.isNotEmpty()) {
+        val pagerState = rememberPagerState(
+            pageCount = apiImagesList.size,
+            initialPage = selectedIndex
+        )
+
+        SetApiImagesPager(apiImagesList, pagerState)
+    }
+
+    if (apiImagesList.isEmpty() && galleryImagesList.isEmpty()) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            androidx.compose.material3.Text(text = "No images found")
+        }
+    }
 }
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
-fun SetImagesPager(images: List<StorageImageModel>?, pagerState: PagerState) {
+fun SetGalleryImagesPager(images: List<StorageImageModel>?, pagerState: PagerState) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -96,7 +114,7 @@ fun SetImagesPager(images: List<StorageImageModel>?, pagerState: PagerState) {
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
-fun SetImagesPagerX(images: List<PhotoResult>, pagerState: PagerState) {
+fun SetApiImagesPager(images: List<PhotoResult>, pagerState: PagerState) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -132,5 +150,5 @@ fun SetImagesPagerX(images: List<PhotoResult>, pagerState: PagerState) {
 @Preview(showSystemUi = true)
 @Composable
 fun ImageViewerScreenPreview() {
-    ImageViewerScreen(null, selectedIndex = 0, false)
+    ImageViewerScreen(null, selectedIndex = 0)
 }

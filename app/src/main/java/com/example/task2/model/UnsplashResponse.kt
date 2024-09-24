@@ -5,14 +5,14 @@ data class UnsplashResponse(
 )
 
 data class PhotoResult(
-    val id: String,
-    val urls: Urls
+    val id: String?,
+    val urls: Urls?
 )
 
 data class Urls(
-    val raw: String,
-    val full: String,
-    val regular: String,
-    val small: String,
-    val thumb: String
+    val raw: String?,
+    val full: String?,
+    val regular: String?,
+    val small: String?,
+    val thumb: String?
 )

@@ -39,15 +39,15 @@ fun APIScreen(apiViewModel: UnSplashViewModel, navController: NavHostController)
     }
 
     val photos by apiViewModel.photos
-    val gson = Gson() // Create a Gson instance
+    val gson = Gson()
 
     val apiImagesJson = remember(photos) {
-        val jsonString = gson.toJson(photos) // Serialize the list of PhotoResult objects
-        URLEncoder.encode(jsonString, "UTF-8") // Encode the JSON string to pass it via navigation
+        val jsonString = gson.toJson(photos)
+        URLEncoder.encode(jsonString, "UTF-8")
     }
 
     UnSplashGalleryList(apiViewModel) { selectedIndex ->
-        navController.navigate("image_detail_screen/${apiImagesJson}/$selectedIndex?isFromGallery=false")
+        navController.navigate("image_detail_screen/${apiImagesJson}/$selectedIndex")
     }
 
 }
@@ -103,7 +103,7 @@ fun UnSplashGalleryList(
                                     .padding(8.dp)
                             ) {
                                 Image(
-                                    painter = rememberImagePainter(item.urls.regular),
+                                    painter = rememberImagePainter(item.urls?.regular),
                                     contentDescription = null,
                                     modifier = Modifier
                                         .fillMaxWidth()

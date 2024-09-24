@@ -4,9 +4,16 @@ import android.net.Uri
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 
-@Parcelize
+/*@Parcelize
 data class StorageImageModel(
     var uri: Uri,
     val name: String,
     val path: String
+) : Parcelable*/
+
+@Parcelize
+data class StorageImageModel(
+    var uri: Uri?,   // Make nullable
+    val name: String?,
+    val path: String?
 ) : Parcelable
