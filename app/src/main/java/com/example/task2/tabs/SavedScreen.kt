@@ -2,12 +2,14 @@ package com.example.task2.tabs
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
@@ -17,10 +19,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.itemsIndexed
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -31,7 +36,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberImagePainter
 import com.example.task2.model.StorageImageModel
+import com.example.task2.utils.UriTypeAdapter
 import com.example.task2.viewmodel.StorageViewModel
+import com.google.gson.GsonBuilder
+import java.net.URLEncoder
 
 @Composable
 fun SavedScreen(storageViewModel: StorageViewModel, navController: NavHostController) {
@@ -86,43 +94,68 @@ fun SavedScreen(storageViewModel: StorageViewModel, navController: NavHostContro
         }
     }
 
-    val images by storageViewModel.savedImages.observeAsState(emptyList())
+    val savedImages by storageViewModel.savedImages.observeAsState(emptyList())
 
-    SetSavedImagesList(ArrayList(images))
+    val gson = GsonBuilder()
+        .registerTypeAdapter(Uri::class.java, UriTypeAdapter())
+        .create()
+
+    val savedImagesJson = remember(savedImages) {
+        val jsonString = gson.toJson(savedImages) // Use the custom Gson instance
+        URLEncoder.encode(jsonString, "UTF-8")
+    }
+
+    SetSavedImagesList(ArrayList(savedImages)) { selectedIndex ->
+        navController.navigate("image_detail_screen/${savedImagesJson}/$selectedIndex?isFromGallery=true")
+    }
+
 }
 
 @Composable
-fun SetSavedImagesList(storageImageItems: ArrayList<StorageImageModel>) {
+fun SetSavedImagesList(
+    storageImageItems: ArrayList<StorageImageModel>,
+    onItemClick: (Int) -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        LazyVerticalStaggeredGrid(
-            columns = StaggeredGridCells.Fixed(2),
-            modifier = Modifier
-                .fillMaxSize()
-                .weight(1f),
-        ) {
-            itemsIndexed(items = storageImageItems) { _, item ->
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 5.dp, vertical = 5.dp)
-                ) {
-                    Column(
+        if (storageImageItems.isEmpty()) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(text = "No images found")
+            }
+        } else {
+            LazyVerticalStaggeredGrid(
+                columns = StaggeredGridCells.Fixed(2),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .weight(1f),
+            ) {
+                itemsIndexed(items = storageImageItems) { index, item ->
+                    Box(
                         modifier = Modifier
-                            .background(Color.LightGray)
                             .fillMaxWidth()
-                            .padding(8.dp)
+                            .padding(horizontal = 5.dp, vertical = 5.dp)
+                            .clickable { onItemClick(index) }
                     ) {
-                        Image(
-                            painter = rememberImagePainter(item.uri),
-                            contentDescription = null,
+                        Column(
                             modifier = Modifier
+                                .background(Color.LightGray)
                                 .fillMaxWidth()
-                                .aspectRatio(1f)
-                        )
+                                .padding(8.dp)
+                        ) {
+                            Image(
+                                painter = rememberImagePainter(item.uri),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .aspectRatio(1f)
+                            )
+                        }
                     }
                 }
             }

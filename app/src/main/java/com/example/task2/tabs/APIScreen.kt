@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.itemsIndexed
 import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -74,32 +75,41 @@ fun UnSplashGalleryList(
                 CircularProgressIndicator(modifier = Modifier.size(50.dp))
             }
         } else {
-            LazyVerticalStaggeredGrid(
-                columns = StaggeredGridCells.Fixed(2),
-                modifier = Modifier
-                    .fillMaxSize()
-                    .weight(1f),
-            ) {
-                itemsIndexed(items = photos) { index, item ->
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 5.dp, vertical = 5.dp)
-                            .clickable { onImageClick(index) } // Handle image click
-                    ) {
-                        Column(
+            if (photos.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(text = "No images found")
+                }
+            } else {
+                LazyVerticalStaggeredGrid(
+                    columns = StaggeredGridCells.Fixed(2),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .weight(1f),
+                ) {
+                    itemsIndexed(items = photos) { index, item ->
+                        Box(
                             modifier = Modifier
-                                .background(Color.LightGray)
                                 .fillMaxWidth()
-                                .padding(8.dp)
+                                .padding(horizontal = 5.dp, vertical = 5.dp)
+                                .clickable { onImageClick(index) } // Handle image click
                         ) {
-                            Image(
-                                painter = rememberImagePainter(item.urls.regular),
-                                contentDescription = null,
+                            Column(
                                 modifier = Modifier
+                                    .background(Color.LightGray)
                                     .fillMaxWidth()
-                                    .aspectRatio(1f)
-                            )
+                                    .padding(8.dp)
+                            ) {
+                                Image(
+                                    painter = rememberImagePainter(item.urls.regular),
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .aspectRatio(1f)
+                                )
+                            }
                         }
                     }
                 }

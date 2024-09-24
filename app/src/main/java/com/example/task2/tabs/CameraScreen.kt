@@ -33,7 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
-import com.example.task2.utils.saveImages
+import com.example.task2.utils.saveImagesX
 
 @Composable
 fun CameraScreen() {
@@ -52,6 +52,20 @@ fun CameraScreen() {
                 }
             } else {
                 Toast.makeText(context, "Camera permission required.", Toast.LENGTH_SHORT).show()
+            }
+        }
+    )
+
+    val storagePermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { granted ->
+            if (granted) {
+                startCamera(context, lifecycleOwner) { capture, view ->
+                    imageCapture = capture
+                    previewView = view
+                }
+            } else {
+                Toast.makeText(context, "Storage permission required.", Toast.LENGTH_SHORT).show()
             }
         }
     )
@@ -89,7 +103,7 @@ fun CameraScreen() {
         Button(
             onClick = {
                 val imageCaptureInstance = imageCapture ?: return@Button
-                context.saveImages(imageCaptureInstance)
+                context.saveImagesX(imageCaptureInstance)
             },
             modifier = Modifier
                 .align(Alignment.BottomCenter)

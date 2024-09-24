@@ -3,7 +3,6 @@ package com.example.task2.viewmodel
 import android.content.ContentUris
 import android.content.Context
 import android.os.Build
-import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import androidx.lifecycle.LiveData
@@ -12,9 +11,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.task2.model.StorageImageModel
+import com.example.task2.utils.SAVED_FOLDER
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.io.File
 
 class StorageViewModel(private val context: Context) : ViewModel() {
 
@@ -97,12 +96,6 @@ class StorageViewModel(private val context: Context) : ViewModel() {
     private fun getSavedImages(context: Context): List<StorageImageModel> {
         val imageList = mutableListOf<StorageImageModel>()
 
-        // Define the folder path where images are saved
-        val wallpaperAppFolder = File(
-            context.getExternalFilesDir(Environment.DIRECTORY_PICTURES),
-            "Wallpaper-App"
-        ).absolutePath
-
         val collection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
         } else {
@@ -131,14 +124,15 @@ class StorageViewModel(private val context: Context) : ViewModel() {
                 val path =
                     cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA))
 
-                // Add image to the list
-                imageList.add(
-                    StorageImageModel(
-                        uri = uri,
-                        name = name,
-                        path = path
+                if (path.contains(SAVED_FOLDER)) {
+                    imageList.add(
+                        StorageImageModel(
+                            uri = uri,
+                            name = name,
+                            path = path
+                        )
                     )
-                )
+                }
             }
         }
 

@@ -19,11 +19,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.itemsIndexed
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -115,36 +117,46 @@ fun SetImagesList(storageImageItems: ArrayList<StorageImageModel>, onItemClick: 
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        LazyVerticalStaggeredGrid(
-            columns = StaggeredGridCells.Fixed(2),
-            modifier = Modifier
-                .fillMaxSize()
-                .weight(1f),
-        ) {
-            itemsIndexed(items = storageImageItems) { index, item ->
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 5.dp, vertical = 5.dp)
-                        .clickable { onItemClick(index) }
-                ) {
-                    Column(
+        if (storageImageItems.isEmpty()) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(text = "No images found")
+            }
+        } else {
+            LazyVerticalStaggeredGrid(
+                columns = StaggeredGridCells.Fixed(2),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .weight(1f),
+            ) {
+                itemsIndexed(items = storageImageItems) { index, item ->
+                    Box(
                         modifier = Modifier
-                            .background(Color.LightGray)
                             .fillMaxWidth()
-                            .padding(8.dp)
+                            .padding(horizontal = 5.dp, vertical = 5.dp)
+                            .clickable { onItemClick(index) }
                     ) {
-                        Image(
-                            painter = rememberImagePainter(item.uri),
-                            contentDescription = null,
+                        Column(
                             modifier = Modifier
+                                .background(Color.LightGray)
                                 .fillMaxWidth()
-                                .aspectRatio(1f)
-                        )
+                                .padding(8.dp)
+                        ) {
+                            Image(
+                                painter = rememberImagePainter(item.uri),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .aspectRatio(1f)
+                            )
+                        }
                     }
                 }
             }
         }
+
     }
 }
 
