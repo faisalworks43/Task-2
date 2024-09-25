@@ -16,6 +16,7 @@ import androidx.compose.material.TabRow
 import androidx.compose.material.TabRowDefaults
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -27,13 +28,14 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.task2.tabs.APIScreen
-import com.example.task2.tabs.CameraScreen
-import com.example.task2.tabs.SavedScreen
-import com.example.task2.tabs.StorageScreen
+import com.example.task2.ui.APIScreen
+import com.example.task2.ui.CameraScreen
 import com.example.task2.ui.ImageViewerScreen
+import com.example.task2.ui.SavedScreen
+import com.example.task2.ui.StorageScreen
 import com.example.task2.ui.theme.Task2Theme
 import com.example.task2.viewmodel.GalleryViewModelFactory
 import com.example.task2.viewmodel.StorageViewModel
@@ -65,19 +67,23 @@ class MainActivity : ComponentActivity() {
 fun MainScreen() {
 
     val context = LocalContext.current
-
     val navController = rememberNavController()
 
-    val storageViewModel: StorageViewModel = viewModel(
-        factory = StorageViewModelFactory(context)
-    )
-
+    val storageViewModel: StorageViewModel = viewModel(factory = StorageViewModelFactory(context))
     val apiViewModel: UnSplashViewModel = viewModel(factory = GalleryViewModelFactory())
 
     val tabData = getTabList()
     val pagerState = rememberPagerState(pageCount = tabData.size)
+
+    val currentBackStackEntry by navController.currentBackStackEntryAsState()
+    val showTabs =
+        currentBackStackEntry?.destination?.route != "image_detail_screen/{imagesJson}/{selectedIndex}"
+
     Column(modifier = Modifier.fillMaxSize()) {
-        TabLayout(tabData, pagerState)
+        if (showTabs) {
+            TabLayout(tabData, pagerState)
+        }
+
         NavHost(navController = navController, startDestination = "tabs") {
             composable("tabs") {
                 TabContent(
@@ -93,12 +99,11 @@ fun MainScreen() {
                 route = "image_detail_screen/{imagesJson}/{selectedIndex}",
                 arguments = listOf(
                     navArgument("imagesJson") { type = NavType.StringType },
-                    navArgument("selectedIndex") { type = NavType.IntType },
+                    navArgument("selectedIndex") { type = NavType.IntType }
                 )
             ) { backStackEntry ->
                 val imagesJson = backStackEntry.arguments?.getString("imagesJson")
                 val selectedIndex = backStackEntry.arguments?.getInt("selectedIndex") ?: 0
-
                 ImageViewerScreen(imagesJson, selectedIndex)
             }
         }
@@ -171,7 +176,7 @@ fun TabContent(
             }
 
             3 -> {
-                SavedScreen(storageViewModel, navController)
+                SavedScreen(storageViewModel)
             }
         }
     }

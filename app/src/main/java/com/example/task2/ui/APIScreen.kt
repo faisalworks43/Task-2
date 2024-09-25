@@ -1,4 +1,4 @@
-package com.example.task2.tabs
+package com.example.task2.ui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background

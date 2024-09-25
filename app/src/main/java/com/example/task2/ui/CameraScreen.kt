@@ -1,4 +1,4 @@
-package com.example.task2.tabs
+package com.example.task2.ui
 
 import android.Manifest
 import android.content.Context
@@ -22,6 +22,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,10 +35,12 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import com.example.task2.utils.saveImagesX
+import kotlinx.coroutines.launch
 
 @Composable
 fun CameraScreen() {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val lifecycleOwner = LocalLifecycleOwner.current
     var imageCapture: ImageCapture? by remember { mutableStateOf(null) }
     var previewView: PreviewView? by remember { mutableStateOf(null) }
@@ -103,7 +106,9 @@ fun CameraScreen() {
         Button(
             onClick = {
                 val imageCaptureInstance = imageCapture ?: return@Button
-                context.saveImagesX(imageCaptureInstance)
+                scope.launch {
+                    context.saveImagesX(imageCaptureInstance)
+                }
             },
             modifier = Modifier
                 .align(Alignment.BottomCenter)

@@ -4,6 +4,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
@@ -12,6 +13,9 @@ import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.core.content.ContextCompat
 import androidx.core.net.toFile
+import coil.ImageLoader
+import coil.request.ImageRequest
+import coil.request.SuccessResult
 import java.io.File
 
 const val SAVED_FOLDER = "Wallpaper-App"
@@ -34,20 +38,15 @@ fun Context.saveImagesX(imageCapture: ImageCapture) {
                 val savedUri = Uri.fromFile(photoFile)
                 val bitmap = BitmapFactory.decodeFile(savedUri.toFile().absolutePath)
 
-                saveImageToStorage(bitmap) { absolutePath ->
-                    Toast.makeText(
-                        this@saveImagesX,
-                        "Image saved at $absolutePath",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
+                saveImageToStorage(bitmap)
             }
         }
     )
 }
+
 fun Context.saveImageToStorage(
     bitmap: Bitmap,
-    onSavedSuccess: ((String?) -> Unit)
+    doCompress: Boolean = false
 ) {
     val name = "Image_${System.currentTimeMillis()}.jpg"
     val contentValues = ContentValues().apply {
@@ -65,12 +64,15 @@ fun Context.saveImageToStorage(
         val outputStream = resolver.openOutputStream(it)
         outputStream?.use { outImage ->
             val absolutePath = getImagePathFromURI(it, this)
-            onSavedSuccess(absolutePath)
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outImage)
+            val quality = if (doCompress) 50 else 100
+            bitmap.compress(Bitmap.CompressFormat.JPEG, quality, outImage)
+
+            val message = if (doCompress) "Compressed Image saved at $absolutePath"
+            else "Image saved at $absolutePath"
 
             Toast.makeText(
-                this@saveImageToStorage,
-                "Image Saved.",
+                this,
+                message,
                 Toast.LENGTH_SHORT
             ).show()
         }
@@ -89,4 +91,17 @@ fun getImagePathFromURI(uri: Uri, context: Context): String? {
         }
     }
     return filePath
+}
+
+suspend fun getBitmapFromUri(context: Context, imageUri: Any?): Bitmap? {
+    if (imageUri == null) return null
+
+    val loader = ImageLoader(context)
+    val request = ImageRequest.Builder(context)
+        .data(imageUri)
+        .allowHardware(false) // Important to get Bitmap
+        .build()
+
+    val result = (loader.execute(request) as? SuccessResult)?.drawable
+    return (result as? BitmapDrawable)?.bitmap
 }

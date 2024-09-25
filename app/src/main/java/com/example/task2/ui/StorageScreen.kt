@@ -1,4 +1,4 @@
-package com.example.task2.tabs
+package com.example.task2.ui
 
 import android.Manifest
 import android.content.pm.PackageManager
