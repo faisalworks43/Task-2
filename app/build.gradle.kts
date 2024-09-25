@@ -71,7 +71,7 @@ dependencies {
     implementation(libs.ui.tooling.preview)
     implementation(libs.androidx.navigation.runtime.ktx)
     implementation(libs.androidx.navigation.compose)
-    implementation (libs.kotlin.stdlib.jdk7)
+    implementation(libs.kotlin.stdlib.jdk7)
 
     implementation(libs.accompanist.pager)
     implementation(libs.accompanist.pager.indicators)
@@ -89,9 +89,6 @@ dependencies {
     // Glide
     implementation(libs.glide)
 
-    // Paging 3
-    implementation(libs.androidx.paging.runtime)
-
     // Dagger Hilt
     implementation(libs.hilt.android)
     implementation(libs.androidx.hilt.lifecycle.viewmodel)
@@ -104,4 +101,7 @@ dependencies {
     implementation(libs.androidx.camera.lifecycle)
     implementation(libs.androidx.camera.view)
     implementation(libs.androidx.camera.extensions)
+
+    //Leak Canary
+    debugImplementation(libs.leakcanary.android)
 }

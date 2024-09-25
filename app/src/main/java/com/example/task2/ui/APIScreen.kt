@@ -35,7 +35,7 @@ import java.net.URLEncoder
 fun APIScreen(apiViewModel: UnSplashViewModel, navController: NavHostController) {
 
     LaunchedEffect(Unit) {
-        apiViewModel.searchPhotos("Nature", 3, 20)
+        apiViewModel.searchPhotos("Nature", 1, 20)
     }
 
     val photos by apiViewModel.photos
