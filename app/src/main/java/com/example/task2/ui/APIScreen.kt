@@ -13,12 +13,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.itemsIndexed
+import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -29,12 +31,14 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberImagePainter
 import com.example.task2.viewmodel.UnSplashViewModel
 import com.google.gson.Gson
+import kotlinx.coroutines.flow.map
 import java.net.URLEncoder
 
 @Composable
 fun APIScreen(apiViewModel: UnSplashViewModel, navController: NavHostController) {
 
     LaunchedEffect(Unit) {
+        apiViewModel.resetPagination()
         apiViewModel.searchPhotos("Nature", 1, 30)
     }
 
@@ -49,7 +53,6 @@ fun APIScreen(apiViewModel: UnSplashViewModel, navController: NavHostController)
     UnSplashGalleryList(apiViewModel) { selectedIndex ->
         navController.navigate("image_detail_screen/${apiImagesJson}/$selectedIndex")
     }
-
 }
 
 @Composable
@@ -60,12 +63,26 @@ fun UnSplashGalleryList(
     val photos by unSplashViewModel.photos
     val isLoading by unSplashViewModel.isLoading
 
+    val listState = rememberLazyStaggeredGridState()
+
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.layoutInfo.visibleItemsInfo }
+            .map { visibleItems ->
+                visibleItems.lastOrNull()?.index
+            }
+            .collect { lastVisibleItemIndex ->
+                if (lastVisibleItemIndex != null && lastVisibleItemIndex >= photos.size - 1) {
+                    unSplashViewModel.loadMorePhotos("Nature", 30)
+                }
+            }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        if (isLoading) {
+        if (isLoading && photos.isEmpty()) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -85,6 +102,7 @@ fun UnSplashGalleryList(
             } else {
                 LazyVerticalStaggeredGrid(
                     columns = StaggeredGridCells.Fixed(2),
+                    state = listState,
                     modifier = Modifier
                         .fillMaxSize()
                         .weight(1f),
@@ -111,6 +129,15 @@ fun UnSplashGalleryList(
                                 )
                             }
                         }
+                    }
+                }
+
+                if (isLoading) {
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(modifier = Modifier.size(30.dp))
                     }
                 }
             }

@@ -17,20 +17,37 @@ class UnSplashViewModel(private val repository: UnsplashRepository?) : ViewModel
     private val _loading = mutableStateOf(false)
     val isLoading: State<Boolean> = _loading
 
+    private var currentPage = 1
+    private var isLastPage = false
+
     fun searchPhotos(query: String, page: Int, perPage: Int) {
+        if (isLastPage || isLoading.value) return
         viewModelScope.launch {
             _loading.value = true
             try {
                 val response = repository?.searchPhotos(query, page, perPage)
                 response?.let {
-                    _photos.value = it.results
+                    _photos.value += it.results
+                    currentPage++
+                    if (it.results.size < perPage) {
+                        isLastPage = true
+                    }
                 }
-            } catch (e: Exception) {
-                _loading.value = false
+            } catch (_: Exception) {
             } finally {
                 _loading.value = false
             }
         }
+    }
+
+    fun loadMorePhotos(query: String, perPage: Int) {
+        searchPhotos(query, currentPage, perPage)
+    }
+
+    fun resetPagination() {
+        currentPage = 1
+        isLastPage = false
+        _photos.value = emptyList()
     }
 }
 
